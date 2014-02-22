@@ -20,20 +20,6 @@ type EnvelopeAttrs struct {
     N         string    `xml:"xmlns:n,attr,omitempty"`
 }
 
-var Namespaces EnvelopeAttrs = EnvelopeAttrs{
-    Xsd:"http://www.w3.org/2001/XMLSchema",
-    Xsi:"http://www.w3.org/2001/XMLSchema-instance",
-    Rsp:"http://schemas.microsoft.com/wbem/wsman/1/windows/shell",
-    P:"http://schemas.microsoft.com/wbem/wsman/1/wsman.xsd",
-    W:"http://schemas.dmtf.org/wbem/wsman/1/wsman.xsd",
-    X:"http://schemas.xmlsoap.org/ws/2004/09/transfer",
-    A:"http://schemas.xmlsoap.org/ws/2004/08/addressing",
-    B:"http://schemas.dmtf.org/wbem/wsman/1/cimbinding.xsd",
-    Env:"http://www.w3.org/2003/05/soap-envelope",
-    Cfg:"http://schemas.microsoft.com/wbem/wsman/1/config",
-    N:"http://schemas.xmlsoap.org/ws/2004/09/enumeration",
-}
-
 type ValueName struct {
     Value       string  `xml:",innerxml"`
     Attr        string  `xml:"Name,attr"`
@@ -103,6 +89,28 @@ type BodyStruct struct {
     Shell           *Shell      `xml:"rsp:Shell"`
 }
 
+type TestEnv struct {
+    XMLName   xml.Name  `xml:"env:Envelope"`
+    EnvelopeAttrs
+    Headers     *Headers    `xml:"env:Header,omitempty"`
+    Body        *BodyStruct `xml:"Body,omitempty"`
+}
+
+
+var Namespaces EnvelopeAttrs = EnvelopeAttrs{
+    Xsd:"http://www.w3.org/2001/XMLSchema",
+    Xsi:"http://www.w3.org/2001/XMLSchema-instance",
+    Rsp:"http://schemas.microsoft.com/wbem/wsman/1/windows/shell",
+    P:"http://schemas.microsoft.com/wbem/wsman/1/wsman.xsd",
+    W:"http://schemas.dmtf.org/wbem/wsman/1/wsman.xsd",
+    X:"http://schemas.xmlsoap.org/ws/2004/09/transfer",
+    A:"http://schemas.xmlsoap.org/ws/2004/08/addressing",
+    B:"http://schemas.dmtf.org/wbem/wsman/1/cimbinding.xsd",
+    Env:"http://www.w3.org/2003/05/soap-envelope",
+    Cfg:"http://schemas.microsoft.com/wbem/wsman/1/config",
+    N:"http://schemas.xmlsoap.org/ws/2004/09/enumeration",
+}
+
 var Body BodyStruct = BodyStruct{
     // CommandLine:&Command{
     //     Command:"dir",
@@ -157,14 +165,6 @@ var Head Headers = Headers {
         Value:"http://schemas.xmlsoap.org/ws/2004/09/transfer/Delete",
         Attr:"true",
     },
-}
-
-
-type TestEnv struct {
-    XMLName   xml.Name  `xml:"env:Envelope"`
-    EnvelopeAttrs
-    Headers     *Headers    `xml:"env:Header,omitempty"`
-    Body        *BodyStruct `xml:"Body,omitempty"`
 }
 
 func main(){
