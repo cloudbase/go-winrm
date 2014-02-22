@@ -7,17 +7,17 @@ import (
     )
 
 type EnvelopeAttrs struct {
-    Xsd       string    `xml:"xmlns:xsd,attr"`
-    Xsi       string    `xml:"xmlns:xsi,attr"`
-    Rsp       string    `xml:"xmlns:rsp,attr"`
-    P         string    `xml:"xmlns:p,attr"`
-    W         string    `xml:"xmlns:w,attr"`
-    X         string    `xml:"xmlns:x,attr"`
-    A         string    `xml:"xmlns:a,attr"`
-    B         string    `xml:"xmlns:b,attr"`
-    Env       string    `xml:"xmlns:env,attr"`
-    Cfg       string    `xml:"xmlns:cfg,attr"`
-    N         string    `xml:"xmlns:n,attr"`
+    Xsd       string    `xml:"xmlns:xsd,attr,omitempty"`
+    Xsi       string    `xml:"xmlns:xsi,attr,omitempty"`
+    Rsp       string    `xml:"xmlns:rsp,attr,omitempty"`
+    P         string    `xml:"xmlns:p,attr,omitempty"`
+    W         string    `xml:"xmlns:w,attr,omitempty"`
+    X         string    `xml:"xmlns:x,attr,omitempty"`
+    A         string    `xml:"xmlns:a,attr,omitempty"`
+    B         string    `xml:"xmlns:b,attr,omitempty"`
+    Env       string    `xml:"xmlns:env,attr,omitempty"`
+    Cfg       string    `xml:"xmlns:cfg,attr,omitempty"`
+    N         string    `xml:"xmlns:n,attr,omitempty"`
 }
 
 var Namespaces EnvelopeAttrs = EnvelopeAttrs{
