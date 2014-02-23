@@ -1,10 +1,4 @@
-package main
-
-import (
-    "fmt"
-    "encoding/xml"
-    "os"
-    )
+package winrm
 
 type EnvelopeAttrs struct {
     Xsd       string    `xml:"xmlns:xsd,attr,omitempty"`
@@ -43,18 +37,22 @@ type ReplyAddress struct {
     Address     ValueMustUnderstand  `xml:"Address"`
 }
 
+type Selector struct {
+    Set     ValueName  `xml:"Selector"`
+}
+
 type Headers struct {
     To                  string                  `xml:"env:Header>a:To"`
     OptionSet           *OptionSet              `xml:"env:Header>w:OptionSet,omitempty"`
     ReplyTo             *ReplyAddress           `xml:"env:Header>a:ReplyTo,omitempty"`
     MaxEnvelopeSize     *ValueMustUnderstand    `xml:"env:Header>w:MaxEnvelopeSize,omitempty"`
-    MessageID           string                  `xml:"env:Header>a:MessageID"`
+    MessageID           string                  `xml:"env:Header>a:MessageID,omitempty"`
     Locale              *LocaleAttr             `xml:"env:Header>p:Locale,omitempty"`
     DataLocale          *LocaleAttr             `xml:"env:Header>p:DataLocale,omitempty"`
     OperationTimeout    string                  `xml:"env:Header>w:OperationTimeout"`
     ResourceURI         *ValueMustUnderstand    `xml:"env:Header>w:ResourceURI,omitempty"`
     Action              *ValueMustUnderstand    `xml:"env:Header>w:Action,omitempty"`
-    SelectorSet         *ValueName              `xml:"env:Header>w:SelectorSet,omitempty"`
+    SelectorSet         *Selector               `xml:"env:Header>w:SelectorSet,omitempty"`
 }
 
 type Command struct {
@@ -77,9 +75,21 @@ type Signal struct {
     Code    string  `xml:"rsp:Code"`
 }
 
+type EnvVariable struct {
+    Value   string  `xml:",innerxml"`
+    Name    string  `xml:"Name,attr"`
+}
+
+type Environment struct {
+    Variable    []EnvVariable  `xml:"rsp:Variable"`
+}
+
 type Shell struct{
-    InputStreams    string  `xml:"rsp:InputStreams,omitempty"`
-    OutputStreams   string  `xml:"rsp:OutputStreams,omitempty"`
+    InputStreams        string          `xml:"rsp:InputStreams,omitempty"`
+    OutputStreams       string          `xml:"rsp:OutputStreams,omitempty"`
+    WorkingDirectory    string          `xml:"rsp:WorkingDirectory,omitempty"`
+    IdleTimeOut         string          `xml:"rsp:IdleTimeOut,omitempty"`
+    Environment         *Environment    `xml:"rsp:Environment,omitempty"`
 }
 
 type BodyStruct struct {
@@ -88,14 +98,6 @@ type BodyStruct struct {
     Signal          *Signal     `xml:"rsp:Signal,omitempty"`
     Shell           *Shell      `xml:"rsp:Shell"`
 }
-
-type TestEnv struct {
-    XMLName   xml.Name  `xml:"env:Envelope"`
-    EnvelopeAttrs
-    Headers     *Headers    `xml:"env:Header,omitempty"`
-    Body        *BodyStruct `xml:"Body,omitempty"`
-}
-
 
 var Namespaces EnvelopeAttrs = EnvelopeAttrs{
     Xsd:"http://www.w3.org/2001/XMLSchema",
@@ -109,69 +111,4 @@ var Namespaces EnvelopeAttrs = EnvelopeAttrs{
     Env:"http://www.w3.org/2003/05/soap-envelope",
     Cfg:"http://schemas.microsoft.com/wbem/wsman/1/config",
     N:"http://schemas.xmlsoap.org/ws/2004/09/enumeration",
-}
-
-var Body BodyStruct = BodyStruct{
-    // CommandLine:&Command{
-    //     Command:"dir",
-    //     // Arguments:"C:\\",
-    // },
-    // Receive:&Receive{
-    //     DesiredStream:DesiredStreamProps{
-    //         Value:"stdout stderr",
-    //         Attr:"sfsdfds",
-    //     },
-    // },
-    Shell:&Shell{
-        InputStreams:"stdin",
-        OutputStreams:"stdout stderr",
-    },
-}
-
-var Head Headers = Headers {
-    OperationTimeout:"PT60S",
-    To:"http://windows-host:5985/wsman",
-    MessageID:"uuid:safgfdh",
-    OptionSet:&OptionSet{
-            []ValueName{
-                ValueName{Attr:"WINRS_NOPROFILE", Value:"FALSE"},
-                ValueName{Attr:"WINRS_CODEPAGE", Value:"437"},
-            },
-    },
-    SelectorSet:&ValueName{Value:"dskjfgf", Attr:"ShellID"},
-    ReplyTo:&ReplyAddress{
-        ValueMustUnderstand{
-            Value:"http://schemas.xmlsoap.org/ws/2004/08/addressing/role/anonymous",
-            Attr:"true",
-        },
-    },
-    MaxEnvelopeSize:&ValueMustUnderstand{
-        Value:"153600",
-        Attr:"true",
-    },
-    ResourceURI:&ValueMustUnderstand{
-        Value:"http://schemas.microsoft.com/wbem/wsman/1/windows/shell/cmd",
-        Attr:"true",
-    },
-    DataLocale:&LocaleAttr{
-        MustUnderstand:"true",
-        Lang:"en-US",
-    },
-    Locale:&LocaleAttr{
-        MustUnderstand:"true",
-        Lang:"en-US",
-    },
-    Action:&ValueMustUnderstand{
-        Value:"http://schemas.xmlsoap.org/ws/2004/09/transfer/Delete",
-        Attr:"true",
-    },
-}
-
-func main(){
-    v := &TestEnv{EnvelopeAttrs:Namespaces, Headers:&Head, Body:&Body}
-    output, err := xml.MarshalIndent(v, "  ", "    ")
-    if err != nil {
-        fmt.Printf("error: %v\n", err)
-    }
-    os.Stdout.Write(output)
 }
