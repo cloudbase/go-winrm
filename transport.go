@@ -4,7 +4,7 @@ import (
     "net/http"
     "strings"
     "crypto/tls"
-    "fmt"
+    // "fmt"
     "bytes"
     "errors"
 )
@@ -22,12 +22,14 @@ type SoapRequest struct {
     Passwd          string
     HttpInsecure    bool
     CertAuth        *CertificateCredentials
+    HttpClient      *http.Client
 }
 
 func (conf *SoapRequest) SendMessage(data []byte) (*http.Response, error){
     if conf.AuthType == "BasicAuth"{
         if conf.Username == "" || conf.Passwd == "" {
-            fmt.Errorf("AuthType BasicAuth needs Username and Passwd")
+            // fmt.Errorf("AuthType BasicAuth needs Username and Passwd")
+            return nil, errors.New("AuthType BasicAuth needs Username and Passwd")
         }
         return conf.HttpBasicAuth(data)
     }
@@ -37,7 +39,7 @@ func (conf *SoapRequest) SendMessage(data []byte) (*http.Response, error){
 func (conf *SoapRequest) GetHttpHeader () (map[string]string) {
     header := make(map[string]string)
     header["Content-Type"] = "application/soap+xml;charset=UTF-8"
-    header["User-Agent"] = "Python WinRM client"
+    header["User-Agent"] = "Go WinRM client"
     return header
 }
 
@@ -49,13 +51,15 @@ func (conf *SoapRequest) HttpBasicAuth (data []byte) (*http.Response, error){
 
     header := conf.GetHttpHeader()
     
-    client := &http.Client{}
+    if conf.HttpClient == nil{
+        conf.HttpClient = &http.Client{}
+    }
     // Ignore SSL certificate errors
     if protocol[0] == "https" {
         tr := &http.Transport{
             TLSClientConfig: &tls.Config{InsecureSkipVerify: conf.HttpInsecure},
         }
-        client.Transport = tr
+        conf.HttpClient.Transport = tr
     }
     body := bytes.NewBuffer(data)
     req, err := http.NewRequest("POST", conf.Endpoint, body)
@@ -66,6 +70,6 @@ func (conf *SoapRequest) HttpBasicAuth (data []byte) (*http.Response, error){
         req.Header.Add(k, v)
     }
 
-    resp, err := client.Do(req)
+    resp, err := conf.HttpClient.Do(req)
     return resp, err
 }

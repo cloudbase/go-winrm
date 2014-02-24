@@ -4,6 +4,7 @@ import (
     "encoding/xml"
     // "io/ioutil"
     "fmt"
+    "errors"
     "github.com/nu7hatch/gouuid"
 )
 
@@ -31,7 +32,7 @@ type HeaderParams struct {
 }
 
 // Generate SOAP envelope headers
-func (envelope *Envelope) GetSoapHeaders(params HeaderParams){
+func (envelope *Envelope) GetSoapHeaders(params HeaderParams) (error){
     envelope.Headers = &Headers{
         OperationTimeout:"PT60S",
         To:"http://windows-host:5985/wsman",
@@ -73,7 +74,7 @@ func (envelope *Envelope) GetSoapHeaders(params HeaderParams){
         envelope.Headers.SelectorSet = &Selector{
             ValueName{
                 Value:params.ShellID,
-                Attr:"ShellID",
+                Attr:"ShellId",
             },
         }
     }
@@ -81,11 +82,12 @@ func (envelope *Envelope) GetSoapHeaders(params HeaderParams){
     if params.MessageID == "" {
         uuid, err := uuid.NewV4()
         if err != nil{
-            fmt.Printf("Error: %v\n", err)
+            return err
         }
         params.MessageID = fmt.Sprintf("uuid:%s", uuid)
     }
     envelope.Headers.MessageID = params.MessageID
+    return nil
 }
 
 // TODO: Do a soap request and return ShellID
@@ -131,13 +133,12 @@ func (envelope *Envelope) GetShell(params ShellParams, soap SoapRequest) (*strin
     envelope.EnvelopeAttrs = Namespaces
     output, err := xml.MarshalIndent(envelope, "", "")
     if err != nil {
-        fmt.Printf("error: %v\n", err)
+        return nil, err
     }
     // response from WinRM
     resp, err := soap.SendMessage(output)
     defer resp.Body.Close()
     if err != nil{
-        fmt.Errorf("err")
         return nil, err
     }
 
@@ -148,4 +149,33 @@ func (envelope *Envelope) GetShell(params ShellParams, soap SoapRequest) (*strin
     shellID := &respObj.Body.Shell.ShellId
 
     return shellID, err
+}
+
+func (envelope *Envelope) CloseShell(shellID string, soap SoapRequest) (error){
+    HeadParams := HeaderParams {
+        ResourceURI: "http://schemas.microsoft.com/wbem/wsman/1/windows/shell/cmd",
+        Action: "http://schemas.xmlsoap.org/ws/2004/09/transfer/Delete",
+        ShellID: shellID,
+    }
+    var Body BodyStruct = BodyStruct{}
+
+    envelope.EnvelopeAttrs = Namespaces
+    envelope.GetSoapHeaders(HeadParams)
+    envelope.Body = &Body
+
+    output, err := xml.MarshalIndent(envelope, "", "")
+    if err != nil {
+        return err
+    }
+
+    resp, err := soap.SendMessage(output)
+    // contents, err := ioutil.ReadAll(resp.Body)
+    // fmt.Printf("REQ:%s\n\nRESP:%s\n\nSHELL:%s\n\n", output, contents, shellID)
+    if err != nil{
+        return err
+    }
+    if resp.StatusCode != 200 {
+        return errors.New("bla")
+    }
+    return nil
 }

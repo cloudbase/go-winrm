@@ -38,7 +38,7 @@ type ReplyAddress struct {
 }
 
 type Selector struct {
-    Set     ValueName  `xml:"Selector"`
+    Set     ValueName  `xml:"w:Selector"`
 }
 
 type Headers struct {

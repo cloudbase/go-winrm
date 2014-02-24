@@ -52,7 +52,7 @@ type ResponseBody struct{
 
 type ResponseEnvelope struct{
     XMLName     xml.Name `xml"s:Envelope"`
-    // xmlnsS      string   `xml"xmlns:s,attr"`
+    xmlnsS      string   `xml"xmlns:s,attr"`
     // xmlnsA      string   `xml"xmlns:a,attr"`
     // xmlnsX      string   `xml"xmlns:x,attr"`
     // xmlnsW      string   `xml"xmlns:w,attr"`
