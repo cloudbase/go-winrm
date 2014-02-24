@@ -34,7 +34,7 @@ type LocaleAttr struct {
 }
 
 type ReplyAddress struct {
-    Address     ValueMustUnderstand  `xml:"Address"`
+    Address     ValueMustUnderstand  `xml:"a:Address"`
 }
 
 type Selector struct {
@@ -42,17 +42,17 @@ type Selector struct {
 }
 
 type Headers struct {
-    To                  string                  `xml:"env:Header>a:To"`
-    OptionSet           *OptionSet              `xml:"env:Header>w:OptionSet,omitempty"`
-    ReplyTo             *ReplyAddress           `xml:"env:Header>a:ReplyTo,omitempty"`
-    MaxEnvelopeSize     *ValueMustUnderstand    `xml:"env:Header>w:MaxEnvelopeSize,omitempty"`
-    MessageID           string                  `xml:"env:Header>a:MessageID,omitempty"`
-    Locale              *LocaleAttr             `xml:"env:Header>p:Locale,omitempty"`
-    DataLocale          *LocaleAttr             `xml:"env:Header>p:DataLocale,omitempty"`
-    OperationTimeout    string                  `xml:"env:Header>w:OperationTimeout"`
-    ResourceURI         *ValueMustUnderstand    `xml:"env:Header>w:ResourceURI,omitempty"`
-    Action              *ValueMustUnderstand    `xml:"env:Header>w:Action,omitempty"`
-    SelectorSet         *Selector               `xml:"env:Header>w:SelectorSet,omitempty"`
+    To                  string                  `xml:"a:To"`
+    OptionSet           *OptionSet              `xml:"w:OptionSet,omitempty"`
+    ReplyTo             *ReplyAddress           `xml:"a:ReplyTo,omitempty"`
+    MaxEnvelopeSize     *ValueMustUnderstand    `xml:"w:MaxEnvelopeSize,omitempty"`
+    MessageID           string                  `xml:"a:MessageID,omitempty"`
+    Locale              *LocaleAttr             `xml:"p:Locale,omitempty"`
+    DataLocale          *LocaleAttr             `xml:"p:DataLocale,omitempty"`
+    OperationTimeout    string                  `xml:"w:OperationTimeout"`
+    ResourceURI         *ValueMustUnderstand    `xml:"w:ResourceURI,omitempty"`
+    Action              *ValueMustUnderstand    `xml:"a:Action,omitempty"`
+    SelectorSet         *Selector               `xml:"w:SelectorSet,omitempty"`
 }
 
 type Command struct {

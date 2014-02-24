@@ -7,10 +7,19 @@ import (
 )
 
 type Envelope struct {
-    XMLName         xml.Name  `xml:"env:Envelope"`
+    XMLName         xml.Name    `xml:"env:Envelope"`
     EnvelopeAttrs
     Headers         *Headers    `xml:"env:Header,omitempty"`
-    Body            *BodyStruct `xml:"Body,omitempty"`
+    Body            *BodyStruct `xml:"env:Body,omitempty"`
+}
+
+type ShellParams struct {
+    IStream     string
+    OStream     string
+    WorkingDir  string
+    EnvVars     *Environment
+    NoProfile   bool
+    Codepage    string
 }
 
 type HeaderParams struct {
@@ -20,8 +29,9 @@ type HeaderParams struct {
     MessageID           string
 }
 
-func GetSoapHeaders(params HeaderParams) Headers{
-    var Head Headers = Headers {
+// Generate SOAP envelope headers
+func (envelope *Envelope) GetSoapHeaders(params HeaderParams){
+    envelope.Headers = &Headers{
         OperationTimeout:"PT60S",
         To:"http://windows-host:5985/wsman",
         ReplyTo:&ReplyAddress{
@@ -45,21 +55,21 @@ func GetSoapHeaders(params HeaderParams) Headers{
     }
 
     if params.ResourceURI != "" {
-        Head.ResourceURI = &ValueMustUnderstand{
+        envelope.Headers.ResourceURI = &ValueMustUnderstand{
             Value:params.ResourceURI,
             Attr:"true",
         }
     }
 
     if params.Action != "" {
-        Head.Action = &ValueMustUnderstand{
+        envelope.Headers.Action = &ValueMustUnderstand{
             Value:params.Action,
             Attr:"true",
         }
     }
 
     if params.ShellID != "" {
-        Head.SelectorSet = &Selector{
+        envelope.Headers.SelectorSet = &Selector{
             ValueName{
                 Value:params.ShellID,
                 Attr:"ShellID",
@@ -74,32 +84,22 @@ func GetSoapHeaders(params HeaderParams) Headers{
         }
         params.MessageID = fmt.Sprintf("uuid:%s", uuid)
     }
-    Head.MessageID = params.MessageID
-    
-    return Head
-}
-
-type ShellParams struct {
-    IStream     string
-    OStream     string
-    WorkingDir  string
-    EnvVars     *Environment
-    NoProfile   bool
-    Codepage    string
+    envelope.Headers.MessageID = params.MessageID
 }
 
 // TODO: Do a soap request and return ShellID
-func GetShell(params ShellParams) []byte {
+func (envelope *Envelope) GetShell(params ShellParams) []byte {
     HeadParams := HeaderParams {
         ResourceURI: "http://schemas.microsoft.com/wbem/wsman/1/windows/shell/cmd",
         Action: "http://schemas.xmlsoap.org/ws/2004/09/transfer/Create",
     }
-    var Head Headers = GetSoapHeaders(HeadParams)
+    // envelope := Envelope{}
+    envelope.GetSoapHeaders(HeadParams)
 
     if params.Codepage == "" {
         params.Codepage = "437"
     }
-    Head.OptionSet = &OptionSet{
+    envelope.Headers.OptionSet = &OptionSet{
         []ValueName{
             ValueName{Attr:"WINRS_NOPROFILE", Value:"FALSE"},
             ValueName{Attr:"WINRS_CODEPAGE", Value:params.Codepage},
@@ -125,8 +125,10 @@ func GetShell(params ShellParams) []byte {
     }
 
     Body.Shell = &ShellVars
-    v := &Envelope{EnvelopeAttrs:Namespaces, Headers:&Head, Body:&Body}
-    output, err := xml.MarshalIndent(v, "  ", "    ")
+    envelope.Body = &Body
+    envelope.EnvelopeAttrs = Namespaces
+    // v := &Envelope{EnvelopeAttrs:Namespaces, Headers:&Head, Body:&Body}
+    output, err := xml.MarshalIndent(envelope, "  ", "    ")
     if err != nil {
         fmt.Printf("error: %v\n", err)
     }

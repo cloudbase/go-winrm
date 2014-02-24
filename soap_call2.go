@@ -1,4 +1,4 @@
-package main
+package winrm
 
 import (
     "flag"
