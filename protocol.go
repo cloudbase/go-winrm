@@ -31,6 +31,13 @@ type HeaderParams struct {
     MessageID           string
 }
 
+type CmdParams struct {
+    ShellID     string
+    Cmd         string
+    Args        string
+    Timeout     string
+}
+
 // Generate SOAP envelope headers
 func (envelope *Envelope) GetSoapHeaders(params HeaderParams) (error){
     envelope.Headers = &Headers{
@@ -149,6 +156,64 @@ func (envelope *Envelope) GetShell(params ShellParams, soap SoapRequest) (*strin
     shellID := &respObj.Body.Shell.ShellId
 
     return shellID, err
+}
+
+func (envelope *Envelope) SendCommand(params CmdParams, soap SoapRequest) (string, error){
+    HeadParams := HeaderParams {
+        ResourceURI: "http://schemas.microsoft.com/wbem/wsman/1/windows/shell/cmd",
+        Action: "http://schemas.microsoft.com/wbem/wsman/1/windows/shell/Command",
+    }
+    if params.ShellID == "" {
+        return "", errors.New("Invalid ShellId")
+    }
+    HeadParams.ShellID = params.ShellID
+    envelope.GetSoapHeaders(HeadParams)
+
+    envelope.Headers.OptionSet = &OptionSet{
+        []ValueName{
+            ValueName{Attr:"WINRS_CONSOLEMODE_STDIN", Value:"TRUE"},
+            ValueName{Attr:"WINRS_SKIP_CMD_SHELL", Value:"FALSE"},
+        },
+    }
+
+    if params.Timeout == "" {
+        envelope.Headers.OperationTimeout = "PT3600S"
+    }else{
+        envelope.Headers.OperationTimeout = params.Timeout
+    }
+    // var Body BodyStruct = BodyStruct{}
+
+    envelope.EnvelopeAttrs = Namespaces
+    if params.Cmd == "" {
+        return "", errors.New("Invalid command")
+    }
+    envelope.Body = &BodyStruct{
+        CommandLine: &Command{
+            Command: params.Cmd,
+        },
+    }
+
+    if params.Args != "" {
+        envelope.Body.CommandLine.Arguments = params.Args
+    }
+
+    output, err := xml.MarshalIndent(envelope, "  ", "    ")
+    if err != nil {
+        return "", err
+    }
+    // fmt.Printf("%s\n", output)
+    resp, err := soap.SendMessage(output)
+    if err != nil{
+        return "", err
+    }
+
+    respObj, err := GetObjectFromXML(resp.Body)
+    if err != nil{
+        return "", err
+    }
+    // contents, _ := ioutil.ReadAll(resp.Body)
+    // fmt.Printf("REQ:%s\n\nRESP:%s\n\nSHELL:%s\n\n", output, contents, shellID)
+    return respObj.Body.CommandResponse.CommandId, nil
 }
 
 func (envelope *Envelope) CloseShell(shellID string, soap SoapRequest) (error){
