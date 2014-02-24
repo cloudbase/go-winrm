@@ -2,6 +2,7 @@ package winrm
 
 import (
     "encoding/xml"
+    // "io/ioutil"
     "fmt"
     "github.com/nu7hatch/gouuid"
 )
@@ -88,7 +89,7 @@ func (envelope *Envelope) GetSoapHeaders(params HeaderParams){
 }
 
 // TODO: Do a soap request and return ShellID
-func (envelope *Envelope) GetShell(params ShellParams, soap SoapRequest) (shellID string, error *error) {
+func (envelope *Envelope) GetShell(params ShellParams, soap SoapRequest) (*string, error){
     HeadParams := HeaderParams {
         ResourceURI: "http://schemas.microsoft.com/wbem/wsman/1/windows/shell/cmd",
         Action: "http://schemas.xmlsoap.org/ws/2004/09/transfer/Create",
@@ -128,18 +129,23 @@ func (envelope *Envelope) GetShell(params ShellParams, soap SoapRequest) (shellI
     Body.Shell = &ShellVars
     envelope.Body = &Body
     envelope.EnvelopeAttrs = Namespaces
-    output, err := xml.MarshalIndent(envelope, "  ", "    ")
+    output, err := xml.MarshalIndent(envelope, "", "")
     if err != nil {
         fmt.Printf("error: %v\n", err)
     }
     // response from WinRM
     resp, err := soap.SendMessage(output)
-    if err != nil{
-        return "", &err
-    }
     defer resp.Body.Close()
-    respObj := GetObjectFromXML(resp.Body)
-    shellID = respObj.Body.Shell.ShellId
+    if err != nil{
+        fmt.Errorf("err")
+        return nil, err
+    }
 
-    return shellID, nil
+    respObj, err := GetObjectFromXML(resp.Body)
+    if err != nil {
+        return nil, err
+    }
+    shellID := &respObj.Body.Shell.ShellId
+
+    return shellID, err
 }
