@@ -88,7 +88,7 @@ func (envelope *Envelope) GetSoapHeaders(params HeaderParams){
 }
 
 // TODO: Do a soap request and return ShellID
-func (envelope *Envelope) GetShell(params ShellParams) []byte {
+func (envelope *Envelope) ShellEnvelope(params ShellParams) []byte {
     HeadParams := HeaderParams {
         ResourceURI: "http://schemas.microsoft.com/wbem/wsman/1/windows/shell/cmd",
         Action: "http://schemas.xmlsoap.org/ws/2004/09/transfer/Create",
