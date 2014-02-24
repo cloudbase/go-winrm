@@ -88,7 +88,7 @@ func (envelope *Envelope) GetSoapHeaders(params HeaderParams){
 }
 
 // TODO: Do a soap request and return ShellID
-func (envelope *Envelope) ShellEnvelope(params ShellParams) []byte {
+func (envelope *Envelope) GetShell(params ShellParams, soap SoapRequest) (shellID string, error *error) {
     HeadParams := HeaderParams {
         ResourceURI: "http://schemas.microsoft.com/wbem/wsman/1/windows/shell/cmd",
         Action: "http://schemas.xmlsoap.org/ws/2004/09/transfer/Create",
@@ -124,13 +124,22 @@ func (envelope *Envelope) ShellEnvelope(params ShellParams) []byte {
         ShellVars.Environment = params.EnvVars
     }
 
+    // send request to WinRm
     Body.Shell = &ShellVars
     envelope.Body = &Body
     envelope.EnvelopeAttrs = Namespaces
-    // v := &Envelope{EnvelopeAttrs:Namespaces, Headers:&Head, Body:&Body}
     output, err := xml.MarshalIndent(envelope, "  ", "    ")
     if err != nil {
         fmt.Printf("error: %v\n", err)
     }
-    return output
+    // response from WinRM
+    resp, err := soap.SendMessage(output)
+    if err != nil{
+        return "", &err
+    }
+    defer resp.Body.Close()
+    respObj := GetObjectFromXML(resp.Body)
+    shellID = respObj.Body.Shell.ShellId
+
+    return shellID, nil
 }
