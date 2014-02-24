@@ -6,18 +6,18 @@ import (
     "io/ioutil"
 )
 
-type Selector struct{
+type ResponseSelector struct{
     Value string  `xml:",innerxml"`
     Name  string  `xml:"Name,attr"`
 }
 
-type SelectorSet struct{
-    Selector    *Selector      `xml"w:Selector"`
+type ResponseSelectorSet struct{
+    Selector    *ResponseSelector      `xml"w:Selector"`
 }
 
 type ReferenceParameters struct{
-    ResourceURI     string         `xml"w:ResourceURI"`
-    SelectorSet     *SelectorSet   `xml"w:SelectorSet"`
+    ResourceURI     string                 `xml"w:ResourceURI"`
+    SelectorSet     *ResponseSelectorSet   `xml"w:SelectorSet"`
 }
 
 type ResourceCreated struct{
@@ -25,14 +25,14 @@ type ResourceCreated struct{
     ReferenceParameters     *ReferenceParameters   `xml"a:ReferenceParameters"`
 }
 
-type Header struct{
+type ResponseHeader struct{
     Action      string      `xml"a:Action"`
     MessageID   string      `xml"a:MessageID"`
     To          string      `xml"a:To"`
     RelatesTo   string      `xml"a:RelatesTo"`
 }
 
-type Shell struct{
+type ResponseShell struct{
     // xmlnsRsp           string  `xml:"xmlns:rsp,attr"`
     ShellId            string  `xml"rsp:ShellId"`
     ResourceUri        string  `xml"rsp:ResourceUri"`
@@ -45,9 +45,9 @@ type Shell struct{
     ShellInactivity    string  `xml"rsp:OutputStreams"`
 }
 
-type Body struct{
+type ResponseBody struct{
     ResourceCreated *ResourceCreated   `xml"x:ResourceCreated"`
-    Shell           *Shell             `xml"rsp:Shell"`
+    Shell           *ResponseShell     `xml"rsp:Shell"`
 }
 
 type ResponseEnvelope struct{
@@ -59,8 +59,8 @@ type ResponseEnvelope struct{
     // xmlnsRsp    string   `xml"xmlns:rsp,attr"`
     // xmlnsP      string   `xml"xmlns:p,attr"`
     // xmlnsLang   string   `xml"xmlns:lang,attr"`
-    Header      *Header  `xml"s:Header"`
-    Body        *Body    `xml"s:Body"`
+    Header      *ResponseHeader  `xml"s:Header"`
+    Body        *ResponseBody    `xml"s:Body"`
 }
 
 
