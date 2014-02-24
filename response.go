@@ -33,7 +33,7 @@ type ResponseHeader struct{
 }
 
 type ResponseShell struct{
-    // xmlnsRsp           string  `xml:"xmlns:rsp,attr"`
+    // xmlnsRsp        string  `xml:"xmlns:rsp,attr"`
     ShellId            string  `xml"rsp:ShellId"`
     ResourceUri        string  `xml"rsp:ResourceUri"`
     Owner              string  `xml"rsp:Owner"`
@@ -64,9 +64,13 @@ type ResponseEnvelope struct{
 }
 
 
-func GetObjectFromXML(XMLinput io.Reader) (ResponseEnvelope) {    
-    b, _ := ioutil.ReadAll(XMLinput)
+func GetObjectFromXML(XMLinput io.Reader) (ResponseEnvelope, error) {    
+    b, err := ioutil.ReadAll(XMLinput)
     var response ResponseEnvelope
+    if err != nil{
+        return response, err
+    }else{
     xml.Unmarshal(b, &response)
-    return response
+    return response, nil
+    }
 }
