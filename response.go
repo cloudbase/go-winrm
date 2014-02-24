@@ -1,9 +1,7 @@
 package winrm
 
 import (
-	"fmt"
 	"encoding/xml"
-    "os"
     "io"
     "io/ioutil"
 )
@@ -72,14 +70,3 @@ func GetObjectFromXML(XMLinput io.Reader) (ResponseEnvelope) {
     xml.Unmarshal(b, &response)
     return response
 }
-
-
-func main() {
-    xmlFile, err := os.Open("to_open.xml")
-    defer xmlFile.Close()
-    if err != nil {
-        fmt.Println("Error opening file:", err)
-    }
-        a := GetObjectFromXML(xmlFile)
-        fmt.Println(a)
-    }
