@@ -38,6 +38,31 @@ type CmdParams struct {
     Timeout     string
 }
 
+func (envelope *Envelope) RunCommand(shellParams ShellParams, params CmdParams, soap SoapRequest) (string, string, int, error){
+    shell, err_shell := envelope.GetShell(shellParams, soap)
+    if err_shell != nil {
+        return "", "", 0, err_shell
+    }
+    params.ShellID = shell
+    commID, commErr := envelope.SendCommand(params, soap)
+    if commErr != nil {
+        return "", "", 0, commErr
+    }
+    strdout, stderr, ret_code, err := envelope.GetCommandOutput(params.ShellID, commID, soap)
+    if err != nil{
+        return "", "", 0, err
+    }
+    err_clean := envelope.CleanupShell(params.ShellID, commID, soap)
+    if err_clean != nil {
+        return "", "", 0, err
+    }
+    err_close := envelope.CloseShell(params.ShellID, soap)
+    if err_close != nil {
+        return "", "", 0, err
+    }
+    return strdout, stderr, ret_code, err
+}
+
 // Generate SOAP envelope headers
 func (envelope *Envelope) GetSoapHeaders(params HeaderParams) (error){
     envelope.Headers = &Headers{
@@ -138,12 +163,9 @@ func (envelope *Envelope) GetShell(params ShellParams, soap SoapRequest) (string
     Body.Shell = &ShellVars
     envelope.Body = &Body
     envelope.EnvelopeAttrs = Namespaces
-    output, err := xml.MarshalIndent(envelope, "", "")
-    if err != nil {
-        return "", err
-    }
+
     // response from WinRM
-    resp, err := soap.SendMessage(output)
+    resp, err := soap.SendMessage(envelope)
     if err != nil{
         return "", err
     }
@@ -197,12 +219,8 @@ func (envelope *Envelope) SendCommand(params CmdParams, soap SoapRequest) (strin
         envelope.Body.CommandLine.Arguments = params.Args
     }
 
-    output, err := xml.MarshalIndent(envelope, "  ", "    ")
-    if err != nil {
-        return "", err
-    }
     // fmt.Printf("%s\n", output)
-    resp, err := soap.SendMessage(output)
+    resp, err := soap.SendMessage(envelope)
     if err != nil{
         return "", err
     }
@@ -234,20 +252,11 @@ func (envelope *Envelope) GetCommandOutput(shellID, commandID string, soap SoapR
         },
     }
 
-    output, err := xml.MarshalIndent(envelope, "  ", "    ")
-    if err != nil{
-        return "", "", 0, err
-    }
-
-    resp, err := soap.SendMessage(output)
+    resp, err := soap.SendMessage(envelope)
     if err != nil{
         return "", "", 0, err
     }
     defer resp.Body.Close()
-    // respObj, err := GetObjectFromXML(resp.Body)
-    // if err != nil{
-    //     return "", "", 0, err
-    // }
 
     stdout, stderr, retCode := ParseCommandOutput(resp.Body)
     // fmt.Printf("%s\n", output)
@@ -269,11 +278,8 @@ func (envelope *Envelope) CleanupShell(shellID, commandID string, soap SoapReque
     envelope.Body = &BodyStruct{
         Signal: &sig,
     }
-    output, err := xml.MarshalIndent(envelope, "  ", "    ")
-    if err != nil{
-        return err
-    }
-    resp, err := soap.SendMessage(output)
+
+    resp, err := soap.SendMessage(envelope)
     if err != nil{
         return err
     }
@@ -298,12 +304,7 @@ func (envelope *Envelope) CloseShell(shellID string, soap SoapRequest) (error){
     envelope.GetSoapHeaders(HeadParams)
     envelope.Body = &Body
 
-    output, err := xml.MarshalIndent(envelope, "", "")
-    if err != nil {
-        return err
-    }
-
-    resp, err := soap.SendMessage(output)
+    resp, err := soap.SendMessage(envelope)
     // contents, err := ioutil.ReadAll(resp.Body)
     // fmt.Printf("REQ:%s\n\nRESP:%s\n\nSHELL:%s\n\n", output, contents, shellID)
     if err != nil{

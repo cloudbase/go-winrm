@@ -2,9 +2,10 @@ package winrm
 
 import (
     "net/http"
+    "encoding/xml"
     "strings"
     "crypto/tls"
-    // "fmt"
+    "fmt"
     "bytes"
     "errors"
 )
@@ -25,15 +26,20 @@ type SoapRequest struct {
     HttpClient      *http.Client
 }
 
-func (conf *SoapRequest) SendMessage(data []byte) (*http.Response, error){
+func (conf *SoapRequest) SendMessage(envelope *Envelope) (*http.Response, error){
+    output, err := xml.MarshalIndent(envelope, "  ", "    ")
+    if err != nil{
+        return nil, err
+    }
+
     if conf.AuthType == "BasicAuth"{
         if conf.Username == "" || conf.Passwd == "" {
             // fmt.Errorf("AuthType BasicAuth needs Username and Passwd")
             return nil, errors.New("AuthType BasicAuth needs Username and Passwd")
         }
-        return conf.HttpBasicAuth(data)
+        return conf.HttpBasicAuth(output)
     }
-    return nil, nil
+    return nil, errors.New(fmt.Sprintf("Invalid transport: %s", conf.AuthType))
 }
 
 func (conf *SoapRequest) GetHttpHeader () (map[string]string) {

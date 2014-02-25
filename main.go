@@ -18,17 +18,12 @@ func main(){
         HttpInsecure:true,
         HttpClient: &http.Client{},
     }
-
-    v := &winrm.Envelope{}
-    shell, _ := v.GetShell(p, Soap)
     cmdParam := winrm.CmdParams{
-        ShellID: shell,
         Cmd: "dir",
         Args: "c:\\ /A",
     }
-    ret, _ := v.SendCommand(cmdParam, Soap)
-    strdout, stderr, ret_code, _ := v.GetCommandOutput(shell, ret, Soap)
-    _ = v.CleanupShell(shell, ret, Soap)
-    _ = v.CloseShell(shell, Soap)
-    fmt.Printf("Output:%s\nError: %s\nCode:%i\n", strdout, stderr, ret_code)
+
+    v := &winrm.Envelope{}
+    strdout, stderr, ret_code, _ := v.RunCommand(p, cmdParam, Soap)
+    fmt.Printf("Output:%s\nError: %s\nCode:%v\n", strdout, stderr, ret_code)
 }
