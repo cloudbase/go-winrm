@@ -134,7 +134,7 @@ func GetCommandStderr(stream []ResponseStream) []byte{
     return data
 }
 
-func GetCommandOutput(XMLinput io.Reader) (stdout, stderr string, exitcode int){
+func ParseCommandOutput(XMLinput io.Reader) (stdout, stderr string, exitcode int){
     object, err := GetObjectFromXML(XMLinput)
     if err != nil{
         fmt.Println(err)

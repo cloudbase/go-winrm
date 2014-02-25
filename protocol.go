@@ -98,7 +98,7 @@ func (envelope *Envelope) GetSoapHeaders(params HeaderParams) (error){
 }
 
 // TODO: Do a soap request and return ShellID
-func (envelope *Envelope) GetShell(params ShellParams, soap SoapRequest) (*string, error){
+func (envelope *Envelope) GetShell(params ShellParams, soap SoapRequest) (string, error){
     HeadParams := HeaderParams {
         ResourceURI: "http://schemas.microsoft.com/wbem/wsman/1/windows/shell/cmd",
         Action: "http://schemas.xmlsoap.org/ws/2004/09/transfer/Create",
@@ -140,20 +140,20 @@ func (envelope *Envelope) GetShell(params ShellParams, soap SoapRequest) (*strin
     envelope.EnvelopeAttrs = Namespaces
     output, err := xml.MarshalIndent(envelope, "", "")
     if err != nil {
-        return nil, err
+        return "", err
     }
     // response from WinRM
     resp, err := soap.SendMessage(output)
-    defer resp.Body.Close()
     if err != nil{
-        return nil, err
+        return "", err
     }
+    defer resp.Body.Close()
 
     respObj, err := GetObjectFromXML(resp.Body)
     if err != nil {
-        return nil, err
+        return "", err
     }
-    shellID := &respObj.Body.Shell.ShellId
+    shellID := respObj.Body.Shell.ShellId
 
     return shellID, err
 }
@@ -206,6 +206,7 @@ func (envelope *Envelope) SendCommand(params CmdParams, soap SoapRequest) (strin
     if err != nil{
         return "", err
     }
+    defer resp.Body.Close()
 
     respObj, err := GetObjectFromXML(resp.Body)
     if err != nil{
@@ -214,6 +215,75 @@ func (envelope *Envelope) SendCommand(params CmdParams, soap SoapRequest) (strin
     // contents, _ := ioutil.ReadAll(resp.Body)
     // fmt.Printf("REQ:%s\n\nRESP:%s\n\nSHELL:%s\n\n", output, contents, shellID)
     return respObj.Body.CommandResponse.CommandId, nil
+}
+
+func (envelope *Envelope) GetCommandOutput(shellID, commandID string, soap SoapRequest) (string, string, int, error){
+    HeadParams := HeaderParams {
+        ResourceURI: "http://schemas.microsoft.com/wbem/wsman/1/windows/shell/cmd",
+        Action: "http://schemas.microsoft.com/wbem/wsman/1/windows/shell/Receive",
+        ShellID: shellID,
+    }
+    envelope.GetSoapHeaders(HeadParams)
+    envelope.EnvelopeAttrs = Namespaces
+    envelope.Body = &BodyStruct{
+        Receive: &Receive{
+            DesiredStream: DesiredStreamProps{
+                Value: "stdout stderr",
+                Attr: commandID,
+            },
+        },
+    }
+
+    output, err := xml.MarshalIndent(envelope, "  ", "    ")
+    if err != nil{
+        return "", "", 0, err
+    }
+
+    resp, err := soap.SendMessage(output)
+    if err != nil{
+        return "", "", 0, err
+    }
+    defer resp.Body.Close()
+    // respObj, err := GetObjectFromXML(resp.Body)
+    // if err != nil{
+    //     return "", "", 0, err
+    // }
+
+    stdout, stderr, retCode := ParseCommandOutput(resp.Body)
+    // fmt.Printf("%s\n", output)
+    return stdout, stderr, retCode, nil
+}
+
+func (envelope *Envelope) CleanupShell(shellID, commandID string, soap SoapRequest) (error){
+    HeadParams := HeaderParams {
+        ResourceURI: "http://schemas.microsoft.com/wbem/wsman/1/windows/shell/cmd",
+        Action: "http://schemas.microsoft.com/wbem/wsman/1/windows/shell/Signal",
+        ShellID: shellID,
+    }
+    envelope.GetSoapHeaders(HeadParams)
+    envelope.EnvelopeAttrs = Namespaces
+    sig := Signal{
+        Attr: commandID,
+        Code: "http://schemas.microsoft.com/wbem/wsman/1/windows/shell/signal/terminate",
+    }
+    envelope.Body = &BodyStruct{
+        Signal: &sig,
+    }
+    output, err := xml.MarshalIndent(envelope, "  ", "    ")
+    if err != nil{
+        return err
+    }
+    resp, err := soap.SendMessage(output)
+    if err != nil{
+        return err
+    }
+    defer resp.Body.Close()
+    // contents, err2 := ioutil.ReadAll(resp.Body)
+    // fmt.Printf("%s --> %s", contents, err2)
+    if resp.StatusCode != 200 {
+        return errors.New(fmt.Sprintf("Remote host returned error status code: %d", resp.StatusCode))
+    }
+    return nil
 }
 
 func (envelope *Envelope) CloseShell(shellID string, soap SoapRequest) (error){
@@ -239,8 +309,9 @@ func (envelope *Envelope) CloseShell(shellID string, soap SoapRequest) (error){
     if err != nil{
         return err
     }
+    defer resp.Body.Close()
     if resp.StatusCode != 200 {
-        return errors.New("bla")
+        return errors.New("Remote host returned error status code")
     }
     return nil
 }
