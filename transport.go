@@ -1,10 +1,10 @@
 package winrm
 
 import (
-    "net/http"
+    "launchpad.net/gwacl/fork/http"
     "encoding/xml"
     "strings"
-    "crypto/tls"
+    "launchpad.net/gwacl/fork/tls"
     // "io/ioutil"
     // "crypto/x509"
     "fmt"
