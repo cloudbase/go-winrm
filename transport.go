@@ -5,6 +5,8 @@ import (
     "encoding/xml"
     "strings"
     "crypto/tls"
+    // "io/ioutil"
+    // "crypto/x509"
     "fmt"
     "bytes"
     "errors"
@@ -38,6 +40,8 @@ func (conf *SoapRequest) SendMessage(envelope *Envelope) (*http.Response, error)
             return nil, errors.New("AuthType BasicAuth needs Username and Passwd")
         }
         return conf.HttpBasicAuth(output)
+    }else if conf.AuthType == "CertAuth" {
+        return conf.HttpCertAuth(output)
     }
     return nil, errors.New(fmt.Sprintf("Invalid transport: %s", conf.AuthType))
 }
@@ -47,6 +51,55 @@ func (conf *SoapRequest) GetHttpHeader () (map[string]string) {
     header["Content-Type"] = "application/soap+xml;charset=UTF-8"
     header["User-Agent"] = "Go WinRM client"
     return header
+}
+
+func (conf *SoapRequest) HttpCertAuth(data []byte) (*http.Response, error) {
+    protocol := strings.Split(conf.Endpoint, ":")
+    if protocol[0] != "http" && protocol[0] != "https"{
+        return nil, errors.New("Invalid protocol. Expected http or https")
+    }
+    header := conf.GetHttpHeader()
+    header["Authorization"] = "http://schemas.dmtf.org/wbem/wsman/1/wsman/secprofile/https/mutual"
+
+    if conf.HttpClient == nil{
+        conf.HttpClient = &http.Client{}
+    }
+
+    if protocol[0] != "https" {
+        return nil, errors.New("Ivalid protocol for this transport type")
+    }
+
+    cert, err := tls.LoadX509KeyPair(conf.CertAuth.Cert, conf.CertAuth.Key)
+    if err != nil {
+        return nil, err
+    }
+
+    tlsConfig := &tls.Config{
+        InsecureSkipVerify: true,
+        Certificates: []tls.Certificate{
+            cert,
+        },
+    }
+
+    tr := &http.Transport{
+        TLSClientConfig: tlsConfig,
+    }
+    conf.HttpClient.Transport = tr
+    body := bytes.NewBuffer(data)
+    req, err := http.NewRequest("POST", conf.Endpoint, body)
+    req.ContentLength = int64(len(data))
+    for k, v := range header {
+        req.Header.Add(k, v)
+    }
+    resp, err := conf.HttpClient.Do(req)
+    if err != nil{
+        return nil, err
+    }
+    if resp.StatusCode != 200 {
+        return nil, errors.New(fmt.Sprintf("Remote host returned error status code: %d", resp.StatusCode))
+    }
+    fmt.Printf("%v\n%v\n", resp, err)
+    return resp, err
 }
 
 func (conf *SoapRequest) HttpBasicAuth (data []byte) (*http.Response, error){
@@ -77,5 +130,11 @@ func (conf *SoapRequest) HttpBasicAuth (data []byte) (*http.Response, error){
     }
 
     resp, err := conf.HttpClient.Do(req)
+    if err != nil{
+        return nil, err
+    }
+    if resp.StatusCode != 200 {
+        return nil, errors.New(fmt.Sprintf("Remote host returned error status code: %d", resp.StatusCode))
+    }
     return resp, err
 }

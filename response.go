@@ -6,6 +6,7 @@ import (
     "bytes"
     "io"
     "io/ioutil"
+    "errors"
     "encoding/base64"
 )
 
@@ -95,9 +96,13 @@ func GetObjectFromXML(XMLinput io.Reader) (ResponseEnvelope, error) {
     if err != nil{
         return response, err
     }else{
-    xml.Unmarshal(b, &response)
-    return response, nil
+        xml.Unmarshal(b, &response)
     }
+    x := ResponseEnvelope{}
+    if response == x {
+        return x, errors.New("Invalid server response")
+    }
+    return response, nil
 }
 
 func GetCommandStdout(stream []ResponseStream) []byte{

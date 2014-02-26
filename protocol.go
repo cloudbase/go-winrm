@@ -172,6 +172,7 @@ func (envelope *Envelope) GetShell(params ShellParams, soap SoapRequest) (string
     defer resp.Body.Close()
 
     respObj, err := GetObjectFromXML(resp.Body)
+    fmt.Printf("%v\n", respObj)
     if err != nil {
         return "", err
     }
@@ -286,9 +287,6 @@ func (envelope *Envelope) CleanupShell(shellID, commandID string, soap SoapReque
     defer resp.Body.Close()
     // contents, err2 := ioutil.ReadAll(resp.Body)
     // fmt.Printf("%s --> %s", contents, err2)
-    if resp.StatusCode != 200 {
-        return errors.New(fmt.Sprintf("Remote host returned error status code: %d", resp.StatusCode))
-    }
     return nil
 }
 
@@ -311,8 +309,5 @@ func (envelope *Envelope) CloseShell(shellID string, soap SoapRequest) (error){
         return err
     }
     defer resp.Body.Close()
-    if resp.StatusCode != 200 {
-        return errors.New("Remote host returned error status code")
-    }
     return nil
 }
