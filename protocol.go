@@ -172,7 +172,7 @@ func (envelope *Envelope) GetShell(params ShellParams, soap SoapRequest) (string
     defer resp.Body.Close()
 
     respObj, err := GetObjectFromXML(resp.Body)
-    fmt.Printf("%v\n", respObj)
+    //fmt.Printf("%v\n", respObj)
     if err != nil {
         return "", err
     }
