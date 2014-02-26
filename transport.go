@@ -98,7 +98,7 @@ func (conf *SoapRequest) HttpCertAuth(data []byte) (*http.Response, error) {
     if resp.StatusCode != 200 {
         return nil, errors.New(fmt.Sprintf("Remote host returned error status code: %d", resp.StatusCode))
     }
-    fmt.Printf("%v\n%v\n", resp, err)
+    //fmt.Printf("%v\n%v\n", resp, err)
     return resp, err
 }
 
