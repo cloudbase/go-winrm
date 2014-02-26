@@ -100,49 +100,34 @@ func GetObjectFromXML(XMLinput io.Reader) (ResponseEnvelope, error) {
     }
 }
 
-func GetCommandStdout(stream []ResponseStream) []byte{
-    var str bytes.Buffer
-    for _, value := range stream {
-        if value.End == "" && value.Name == "stdout"{
-            str.WriteString(value.Value)
-        }else{
-            break
-        }
-    }
-        s := str.String()
-        data, err := base64.StdEncoding.DecodeString(s)
-        if err != nil{
-            fmt.Println(err)
-    }
-    return data
-}
-
-func GetCommandStderr(stream []ResponseStream) []byte{
-    var str bytes.Buffer
-    for _, value := range stream {
-        if value.End == "" && value.Name == "stderr"{
-            str.WriteString(value.Value)
-        }else{
-            break
-        }
-    }
-        s := str.String()
-        data, err := base64.StdEncoding.DecodeString(s)
-        if err != nil{
-            fmt.Println(err)
-    }
-    return data
-}
-
 func ParseCommandOutput(XMLinput io.Reader) (stdout, stderr string, exitcode int){
     object, err := GetObjectFromXML(XMLinput)
     if err != nil{
         fmt.Println(err)
     }
-    stdout_array := GetCommandStdout(object.Body.ReceiveResponse.Stream)
-    stderr_array := GetCommandStderr(object.Body.ReceiveResponse.Stream)
+    var stdout_b bytes.Buffer 
+    var stderr_b bytes.Buffer 
+    for _, value := range object.Body.ReceiveResponse.Stream {
+        if value.End == "" && value.Name == "stdout"{
+            stdout_b.WriteString(value.Value)
+        }else if value.End == "" && value.Name == "stderr"{
+            stderr_b.WriteString(value.Value)
+        }else{
+            break
+        }
+    }
     exitcode = object.Body.ReceiveResponse.CommandState.ExitCode
+    stdout_s := stdout_b.String()
+    stderr_s := stderr_b.String()
+    stdout_array, err := base64.StdEncoding.DecodeString(stdout_s)
+    if err != nil{
+        fmt.Println(err)
+    }
+    stderr_array, err := base64.StdEncoding.DecodeString(stderr_s)
+    if err != nil{
+        fmt.Println(err)
+    }
     stdout = string(stdout_array[:])
     stderr = string(stderr_array[:])
-    return stdout, stderr, exitcode
+    return
 }
