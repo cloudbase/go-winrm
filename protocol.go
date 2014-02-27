@@ -5,7 +5,6 @@ import (
     // "io/ioutil"
     "fmt"
     "errors"
-    "github.com/nu7hatch/gouuid"
 )
 
 type Envelope struct {
@@ -112,7 +111,7 @@ func (envelope *Envelope) GetSoapHeaders(params HeaderParams) (error){
     }
 
     if params.MessageID == "" {
-        uuid, err := uuid.NewV4()
+        uuid, err := Uuid()
         if err != nil{
             return err
         }

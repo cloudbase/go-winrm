@@ -5,8 +5,6 @@ import (
     "encoding/xml"
     "strings"
     "launchpad.net/gwacl/fork/tls"
-    // "io/ioutil"
-    // "crypto/x509"
     "fmt"
     "bytes"
     "errors"
