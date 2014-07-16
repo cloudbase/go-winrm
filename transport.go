@@ -64,7 +64,7 @@ func (conf *SoapRequest) HttpCertAuth(data []byte) (*http.Response, error) {
 	}
 
 	if protocol[0] != "https" {
-		return nil, errors.New("Ivalid protocol for this transport type")
+		return nil, errors.New("Invalid protocol for this transport type")
 	}
 
 	cert, err := tls.LoadX509KeyPair(conf.CertAuth.Cert, conf.CertAuth.Key)
