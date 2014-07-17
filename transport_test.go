@@ -2,7 +2,6 @@ package winrm
 
 import (
 	"fmt"
-	"errors"
 	"testing"
 	"encoding/xml"
 
@@ -30,7 +29,7 @@ func (TransportSuite) TestHttpCertAuthInvalidProtocol(c *gc.C) {
  
 	resp, err := req.HttpCertAuth(nil)
 	c.Assert(resp, gc.IsNil)
-	c.Assert(err, gc.DeepEquals, errors.New("Invalid protocol. Expected http or https"))
+	c.Assert(err, gc.ErrorMatches, "Invalid protocol. Expected http or https")
 }
 
 // test for https protocol specifically
@@ -39,7 +38,7 @@ func (TransportSuite) TestHttpCertAuthNotHttps(c *gc.C) {
 
 	resp, err := req.HttpCertAuth(nil)
 	c.Assert(resp, gc.IsNil)
-	c.Assert(err, gc.DeepEquals, errors.New("Invalid protocol for this transport type"))
+	c.Assert(err, gc.ErrorMatches, "Invalid protocol for this transport type")
 }
 
 // test for invalid key-value pair
@@ -59,7 +58,7 @@ func (TransportSuite) TestHttpBasicAuthInvalidProtocol(c *gc.C) {
 
 	resp, err := req.HttpBasicAuth(nil)
 	c.Assert(resp, gc.IsNil)
-	c.Assert(err, gc.DeepEquals, errors.New("Invalid protocol. Expected http or https"))
+	c.Assert(err, gc.ErrorMatches, "Invalid protocol. Expected http or https")
 }
 
 // IRRELEVANT TEST
@@ -83,7 +82,7 @@ func (TransportSuite) TestSendEmptyAuthRequest(c *gc.C) {
 
 	resp, err := req.SendMessage(envelope)
 	c.Assert(resp, gc.IsNil)
-	c.Assert(err, gc.DeepEquals, errors.New("AuthType BasicAuth needs Username and Passwd"))
+	c.Assert(err, gc.ErrorMatches, "AuthType BasicAuth needs Username and Passwd")
 }
 
 // test that valid BasicAuth case is recognized
@@ -120,6 +119,6 @@ func (TransportSuite) TestSendBadAuth(c *gc.C) {
 
 	resp, err := req.SendMessage(envelope)
 	c.Assert(resp, gc.IsNil)
-	c.Assert(err, gc.DeepEquals, errors.New(fmt.Sprintf("Invalid transport: %s", req.AuthType)))
+	c.Assert(err, gc.ErrorMatches, fmt.Sprintf("Invalid transport: %s", req.AuthType))
 }
 
