@@ -104,11 +104,11 @@ func GetObjectFromXML(XMLinput io.Reader) (ResponseEnvelope, error) {
 	return response, nil
 }
 
-var ParseXML = GetObjectFromXML
+var parseXML = GetObjectFromXML
 
 func ParseCommandOutput(XMLinput io.Reader) (stdout, stderr string, exitcode int, err error) {
 	//fmt.Printf("%s\n\n\n", XMLinput)
-	object, err := ParseXML(XMLinput)
+	object, err := parseXML(XMLinput)
 	//fmt.Printf("%s", object.Body.ReceiveResponse.Stream)
 	if err != nil {
 		return "", "", 0, errors.New("Error parsing XML")

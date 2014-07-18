@@ -43,7 +43,7 @@ func MockStdOut(XMLinput io.Reader) (ResponseEnvelope, error) {
 }
 
 func (responseSuite) TestStdOutParseCommandOutput(c *gc.C) {
-	ParseXML = MockStdOut
+	parseXML = MockStdOut
 	stdout, stderr, exitcode, err := ParseCommandOutput(bytes.NewBufferString("mocked"))
 	c.Assert(err, gc.IsNil)
 	c.Assert(stdout, gc.Equals, "such great")
@@ -60,7 +60,7 @@ func MockStdErr(XMLinput io.Reader) (ResponseEnvelope, error) {
 }
 
 func (responseSuite) TestStdErrParseCommandOutput(c *gc.C) {
-	ParseXML = MockStdErr
+	parseXML = MockStdErr
 	stdout, stderr, exitcode, err := ParseCommandOutput(bytes.NewBufferString("mocked"))
 	c.Assert(err, gc.IsNil)
 	c.Assert(stdout, gc.Equals, "")
@@ -78,7 +78,7 @@ func MockMultipleStdOut(XMLinput io.Reader) (ResponseEnvelope, error) {
 }
 
 func (responseSuite) TestMultipleStdOutParseCommandOutput(c *gc.C) {
-	ParseXML = MockMultipleStdOut
+	parseXML = MockMultipleStdOut
 	stdout, stderr, exitcode, err := ParseCommandOutput(bytes.NewBufferString("mocked"))
 	c.Assert(err, gc.IsNil)
 	c.Assert(stdout, gc.Equals, "such great\r\nneeds more lines")
@@ -96,7 +96,7 @@ func MockStdErrAndOut(XMLinput io.Reader) (ResponseEnvelope, error) {
 }
 
 func (responseSuite) TestStdErrAndOutParseCommandOutput(c *gc.C) {
-	ParseXML = MockStdErrAndOut
+	parseXML = MockStdErrAndOut
 	stdout, stderr, exitcode, err := ParseCommandOutput(bytes.NewBufferString("mocked"))
 	c.Assert(err, gc.IsNil)
 	c.Assert(stdout, gc.Equals, "such great\r\n")
@@ -114,7 +114,7 @@ func MockBreak(XMLinput io.Reader) (ResponseEnvelope, error) {
 }
 
 func (responseSuite) TestBreakParseCommandOutput(c *gc.C) {
-	ParseXML = MockBreak
+	parseXML = MockBreak
 	stdout, stderr, exitcode, err := ParseCommandOutput(bytes.NewBufferString("mocked"))
 	c.Assert(err, gc.IsNil)
 	c.Assert(stdout, gc.Equals, "such great\r\n")
@@ -127,7 +127,7 @@ func MockInvalidInput(XMLinput io.Reader) (ResponseEnvelope, error) {
 }
 
 func (responseSuite) TestInvalidInputParseCommandOutput(c *gc.C) {
-	ParseXML = MockInvalidInput
+	parseXML = MockInvalidInput
 	stdout, stderr, exitcode, err := ParseCommandOutput(bytes.NewBufferString("mocked"))
 	c.Assert(err, gc.ErrorMatches, "Error parsing XML")
 	c.Assert(stdout, gc.Equals, "")
@@ -144,7 +144,7 @@ func MockInvalidStdOut(XMLinput io.Reader) (ResponseEnvelope, error) {
 }
 
 func (responseSuite) TestInvalidStdOutParseCommandOutput(c *gc.C) {
-	ParseXML = MockInvalidStdOut
+	parseXML = MockInvalidStdOut
 	stdout, stderr, exitcode, err := ParseCommandOutput(bytes.NewBufferString("mocked"))
 	c.Assert(err, gc.ErrorMatches, "Error decoding stdout")
 	c.Assert(stdout, gc.Equals, "")
@@ -161,7 +161,7 @@ func MockInvalidStdErr(XMLinput io.Reader) (ResponseEnvelope, error) {
 }
 
 func (responseSuite) TestInvalidStdErrParseCommandOutput(c *gc.C) {
-	ParseXML = MockInvalidStdErr
+	parseXML = MockInvalidStdErr
 	stdout, stderr, exitcode, err := ParseCommandOutput(bytes.NewBufferString("mocked"))
 	c.Assert(err, gc.ErrorMatches, "Error decoding stderr")
 	c.Assert(stdout, gc.Equals, "")
