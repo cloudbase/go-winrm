@@ -9,7 +9,6 @@ import (
 	jc "launchpad.net/juju-core/testing/checkers"
 )
 
-
 type utilSuite struct{}
 
 var _ = gc.Suite(utilSuite{})

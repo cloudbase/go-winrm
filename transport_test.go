@@ -1,18 +1,16 @@
 package winrm
 
 import (
+	"encoding/xml"
 	"fmt"
 	"testing"
-	"encoding/xml"
 
 	gc "launchpad.net/gocheck"
 )
 
-
 type TransportSuite struct{}
 
 var _ = gc.Suite(TransportSuite{})
-
 
 //tests that GetHttpHeader outputs the desired values
 func (TransportSuite) TestGetHttpHeader(c *gc.C) {
@@ -24,11 +22,10 @@ func (TransportSuite) TestGetHttpHeader(c *gc.C) {
 	c.Assert(header, gc.DeepEquals, want)
 }
 
-
 // tests for completely invalid protocol in HttpCertAuth
 func (TransportSuite) TestHttpCertAuthInvalidProtocol(c *gc.C) {
-	req := SoapRequest{AuthType:"CertAuth", Endpoint:"nothttp://whatever.com"}
- 
+	req := SoapRequest{AuthType: "CertAuth", Endpoint: "nothttp://whatever.com"}
+
 	resp, err := req.HttpCertAuth(nil)
 	c.Assert(resp, gc.IsNil)
 	c.Assert(err, gc.ErrorMatches, "Invalid protocol. Expected http or https")
@@ -36,7 +33,7 @@ func (TransportSuite) TestHttpCertAuthInvalidProtocol(c *gc.C) {
 
 // tests that https protocol is specifically asked for in HttpCertAuth
 func (TransportSuite) TestHttpCertAuthNotHttps(c *gc.C) {
-	req := SoapRequest{AuthType:"CertAuth", Endpoint:"http://something.smth"}
+	req := SoapRequest{AuthType: "CertAuth", Endpoint: "http://something.smth"}
 
 	resp, err := req.HttpCertAuth(nil)
 	c.Assert(resp, gc.IsNil)
@@ -47,26 +44,24 @@ func (TransportSuite) TestHttpCertAuthNotHttps(c *gc.C) {
 func (TransportSuite) TestHttpCertAuthKeypairFailure(c *gc.C) {
 	// must insert invalid certificate fields into this one:
 	cert := CertificateCredentials{}
-	req := SoapRequest{AuthType:"CertAuth", CertAuth:&cert, Endpoint:"https://something.good"}
+	req := SoapRequest{AuthType: "CertAuth", CertAuth: &cert, Endpoint: "https://something.good"}
 
 	resp, err := req.HttpCertAuth(nil)
 	c.Assert(resp, gc.IsNil)
 	c.Assert(err, gc.NotNil)
 }
 
-
 // test for completely invalid protocol in HttpBasicAuth
 func (TransportSuite) TestHttpBasicAuthInvalidProtocol(c *gc.C) {
-	req := SoapRequest{AuthType:"BasicAuth", Endpoint:"nothttp://whatevs"}
+	req := SoapRequest{AuthType: "BasicAuth", Endpoint: "nothttp://whatevs"}
 
 	resp, err := req.HttpBasicAuth(nil)
 	c.Assert(resp, gc.IsNil)
 	c.Assert(err, gc.ErrorMatches, "Invalid protocol. Expected http or https")
 }
 
-
 // IRRELEVANT TEST
-// compiler won't allow sending of envelope which is not a struct, thus the 
+// compiler won't allow sending of envelope which is not a struct, thus the
 // MarshalIndent never throws the error
 // ...
 // when Envelope is anything but a struct(will pass even if not of type Envelope)
@@ -81,7 +76,7 @@ func (TransportSuite) TestHttpBasicAuthInvalidProtocol(c *gc.C) {
 
 // tests that alert is raised in case of BasicAuth request with empty user/pass in SendMessage
 func (TransportSuite) TestSendMessageEmptyAuthRequest(c *gc.C) {
-	req := SoapRequest{AuthType:"BasicAuth"}
+	req := SoapRequest{AuthType: "BasicAuth"}
 	envelope := &Envelope{}
 
 	resp, err := req.SendMessage(envelope)
@@ -91,8 +86,8 @@ func (TransportSuite) TestSendMessageEmptyAuthRequest(c *gc.C) {
 
 // tests that valid BasicAuth case is recognized in SendMessage
 func (TransportSuite) TestSendMessageBasicAuth(c *gc.C) {
-	req := SoapRequest{AuthType:"BasicAuth", Username:"Leeroy", 
-		Passwd:"Jenkins"}
+	req := SoapRequest{AuthType: "BasicAuth", Username: "Leeroy",
+		Passwd: "Jenkins"}
 	envelope := &Envelope{}
 
 	resp, err := req.SendMessage(envelope)
@@ -105,7 +100,7 @@ func (TransportSuite) TestSendMessageBasicAuth(c *gc.C) {
 
 // test that valid CertAuth case is recognized in SendMessage
 func (TransportSuite) TestSendMessageCertAuth(c *gc.C) {
-	req := SoapRequest{AuthType:"CertAuth"}
+	req := SoapRequest{AuthType: "CertAuth"}
 	envelope := &Envelope{}
 
 	resp, err := req.SendMessage(envelope)
@@ -118,11 +113,10 @@ func (TransportSuite) TestSendMessageCertAuth(c *gc.C) {
 
 // tests that SoapRequest with bogus AuthType is rejected in SendMessage
 func (TransportSuite) TestSendMessageBadAuth(c *gc.C) {
-	req := SoapRequest{AuthType:"SomeStupidShit"}
+	req := SoapRequest{AuthType: "SomeStupidShit"}
 	envelope := &Envelope{}
 
 	resp, err := req.SendMessage(envelope)
 	c.Assert(resp, gc.IsNil)
 	c.Assert(err, gc.ErrorMatches, fmt.Sprintf("Invalid transport: %s", req.AuthType))
 }
-
