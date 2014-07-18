@@ -9,7 +9,6 @@ import (
 	jc "launchpad.net/juju-core/testing/checkers"
 )
 
-func Test_util(t *testing.T) { gc.TestingT(t) }
 
 type utilSuite struct{}
 

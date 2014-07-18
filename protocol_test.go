@@ -5,7 +5,6 @@ import (
 	gc "launchpad.net/gocheck"
 )
 
-func Test_protocol(t *testing.T) { gc.TestingT(t) }
 
 type ProtocolSuite struct {}
 

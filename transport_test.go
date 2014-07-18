@@ -8,7 +8,6 @@ import (
 	gc "launchpad.net/gocheck"
 )
 
-func Test_transport(t *testing.T) { gc.TestingT(t) }
 
 type TransportSuite struct{}
 
