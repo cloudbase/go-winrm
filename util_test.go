@@ -2,7 +2,6 @@ package winrm
 
 import (
 	"regexp"
-	"testing"
 
 	gc "launchpad.net/gocheck"
 

@@ -1,9 +1,6 @@
 package winrm
 
-import (
-	gc "launchpad.net/gocheck"
-	"testing"
-)
+import gc "launchpad.net/gocheck"
 
 type ProtocolSuite struct{}
 
