@@ -5,9 +5,10 @@ import (
 	"encoding/xml"
 	"errors"
 	"fmt"
+	"strings"
+
 	"launchpad.net/gwacl/fork/http"
 	"launchpad.net/gwacl/fork/tls"
-	"strings"
 )
 
 type CertificateCredentials struct {

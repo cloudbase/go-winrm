@@ -5,7 +5,6 @@ import (
 	"encoding/base64"
 	"encoding/xml"
 	"errors"
-	"fmt"
 	"io"
 	"io/ioutil"
 )
@@ -105,10 +104,14 @@ func GetObjectFromXML(XMLinput io.Reader) (ResponseEnvelope, error) {
 	return response, nil
 }
 
-func ParseCommandOutput(XMLinput io.Reader) (stdout, stderr string, exitcode int) {
-	object, err := GetObjectFromXML(XMLinput)
+var ParseXML = GetObjectFromXML
+
+func ParseCommandOutput(XMLinput io.Reader) (stdout, stderr string, exitcode int, err error) {
+	//fmt.Printf("%s\n\n\n", XMLinput)
+	object, err := ParseXML(XMLinput)
+	//fmt.Printf("%s", object.Body.ReceiveResponse.Stream)
 	if err != nil {
-		fmt.Println(err)
+		return "", "", 0, errors.New("Error parsing XML")
 	}
 	var stdout_b bytes.Buffer
 	var stderr_b bytes.Buffer
@@ -116,13 +119,13 @@ func ParseCommandOutput(XMLinput io.Reader) (stdout, stderr string, exitcode int
 		if value.End == "" && value.Name == "stdout" {
 			tmp, err := base64.StdEncoding.DecodeString(value.Value)
 			if err != nil {
-				fmt.Println(err)
+				return "", "", 0, errors.New("Error decoding stdout")
 			}
 			stdout_b.Write(tmp)
 		} else if value.End == "" && value.Name == "stderr" {
 			tmp, err := base64.StdEncoding.DecodeString(value.Value)
 			if err != nil {
-				fmt.Println(err)
+				return "", "", 0, errors.New("Error decoding stderr")
 			}
 			stderr_b.Write(tmp)
 		} else {
@@ -132,5 +135,6 @@ func ParseCommandOutput(XMLinput io.Reader) (stdout, stderr string, exitcode int
 	exitcode = object.Body.ReceiveResponse.CommandState.ExitCode
 	stdout = stdout_b.String()
 	stderr = stderr_b.String()
+	err = nil
 	return
 }
