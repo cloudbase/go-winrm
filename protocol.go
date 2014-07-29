@@ -258,7 +258,7 @@ func (envelope *Envelope) GetCommandOutput(shellID, commandID string, soap SoapR
 	}
 	defer resp.Body.Close()
 
-	stdout, stderr, retCode := ParseCommandOutput(resp.Body)
+	stdout, stderr, retCode, err := ParseCommandOutput(resp.Body)
 	// fmt.Printf("%s\n", output)
 	return stdout, stderr, retCode, nil
 }
